@@ -1,7 +1,7 @@
 # dynatrace-ufo-gui
 A self-contained HTML/Javascript GUI for the Dynatrace UFO to enable easy customization and visualization.
 
-Full-disclosure, this was primarily created with Claude and I'm not a professional developer so I can't fully vouch for the efficiency or security of this code.  This should not be used in a production environment.
+Full-disclosure, this was primarily created with Claude and I'm not a professional developer so I can't fully vouch for the efficiency or security of this code.  **This should not be used in a production environment**.
 
 # UFO Controller Interfaces
 
