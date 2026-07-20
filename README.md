@@ -21,7 +21,6 @@ Full-featured desktop controller with a three-column layout optimized for 14"+ s
 **Best for:**
 - Laptop or desktop browser
 - Detailed LED configuration
-- Monitoring and testing with multiple controls visible simultaneously
 
 ### `ufo-controller-mobile.html` (Mobile)
 Touch-friendly interface optimized for phones in portrait mode.
@@ -34,9 +33,8 @@ Touch-friendly interface optimized for phones in portrait mode.
 - Mobile-safe keyboard attributes on IP input
 
 **Best for:**
-- Smartphone browsers (iOS Safari, Android Chrome)
+- Mobile browsers (iOS Safari, Android Chrome)
 - Quick LED control from anywhere
-- Field troubleshooting or CI/CD monitoring at a glance
 
 **Deployable to UFO firmware:**
 - Copy: `data/index-mobile.html`
