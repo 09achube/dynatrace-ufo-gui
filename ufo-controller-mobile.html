@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynatrace UFO Controller Mobile</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --bg-soft: #111a2c;
+      --panel: #17243a;
+      --card: #1f2f4d;
+      --border: #31496b;
+      --accent: #22d3ee;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #fb7185;
+      --violet: #6366f1;
+      --text: #e6edf8;
+      --muted: #93a7c5;
+      --radius: 14px;
+      --ring-size: 150px;
+      --tap: 44px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { overflow-x: hidden; max-width: 100%; }
+
+    body {
+      background:
+        radial-gradient(circle at 15% -10%, #1f3768 0%, transparent 35%),
+        radial-gradient(circle at 95% 10%, #1a3f4c 0%, transparent 28%),
+        linear-gradient(170deg, var(--bg) 0%, var(--bg-soft) 100%);
+      color: var(--text);
+      font-family: Bahnschrift, "Trebuchet MS", Verdana, sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(12, 20, 34, 0.96);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.2px;
+    }
+
+    .conn-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .conn-row label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    #ufoIp {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0 12px;
+      border-radius: 10px;
+      font-size: 16px;
+      width: 100%;
+      min-height: var(--tap);
+    }
+
+    #ufoIp:focus { outline: none; border-color: var(--accent); }
+
+    #statusBar {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-family: Consolas, monospace;
+      background: rgba(8, 14, 26, 0.96);
+      border-bottom: 1px solid var(--border);
+      min-height: 34px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #statusBar.ok { color: var(--green); }
+    #statusBar.err { color: var(--red); }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px;
+      margin: 0 auto;
+      max-width: 1200px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(23, 36, 58, 0.98), rgba(21, 33, 52, 0.98));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+      overflow-x: hidden;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title span.dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      min-height: var(--tap);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter .15s, transform .08s;
+      touch-action: manipulation;
+    }
+
+    .btn:active { transform: scale(.98); }
+    .btn:hover { filter: brightness(1.05); }
+    .btn-accent { background: var(--accent); color: #03242a; }
+    .btn-green { background: var(--green); color: #032215; }
+    .btn-red { background: var(--red); color: #2f0912; }
+    .btn-yellow { background: var(--yellow); color: #2f2200; }
+    .btn-purple { background: var(--violet); color: #edf0ff; }
+    .btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: #3f1d28; color: #ffb1c0; border: 1px solid #86475d; }
+    .btn-sm { min-height: 36px; padding: 7px 10px; font-size: 12px; }
+
+    label.field-label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .field { margin-bottom: 10px; }
+
+    input[type=number], input[type=text], select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0 10px;
+      border-radius: 10px;
+      font-size: 15px;
+      width: 100%;
+      min-height: var(--tap);
+    }
+
+    input[type=number]:focus, input[type=text]:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    input[type=color] {
+      width: 56px;
+      height: var(--tap);
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      background: var(--card);
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .inline-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .inline-row .field {
+      flex: 1;
+      margin-bottom: 0;
+      min-width: 0;
+    }
+
+    .preview-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      /* width is set in rings section below */
+    }
+
+    .preview-wrap .ring-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .rings-container {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .preview-wrap {
+      width: var(--ring-size);
+      flex-shrink: 1;
+    }
+
+    svg.ring {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    svg.ring circle.led-dot { cursor: pointer; transition: r .15s; }
+    svg.ring circle.led-dot:hover { r: 9; }
+
+    .logo-btns {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    #topSegList, #botSegList {
+      list-style: none;
+      margin: 8px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .seg-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .seg-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .seg-item button {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: var(--red);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .preset-grid .btn {
+      white-space: normal;
+      text-align: center;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .toggle-row .toggle-label {
+      font-size: 13px;
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 28px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      transition: .2s;
+    }
+
+    .slider::before {
+      content: '';
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: .2s;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(19px);
+      background: #04252f;
+    }
+
+    .quick-card { grid-column: 1 / -1; }
+
+    .api-preview {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      color: var(--accent);
+      word-break: break-all;
+      min-height: 36px;
+      margin-bottom: 8px;
+    }
+
+    @media (min-width: 700px) {
+      header {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+      }
+
+      .conn-row {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+      }
+
+      .conn-row label {
+        grid-column: 1 / -1;
+      }
+
+      #ufoIp {
+        min-width: 260px;
+      }
+
+    }
+
+    @media (min-width: 960px) {
+      main {
+        grid-template-columns: 320px 1fr 1fr;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .quick-card {
+        grid-column: 1 / -1;
+      }
+
+      .preset-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        overflow-x: visible;
+      }
+
+      .preset-grid .btn {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ??? HEADER ????????????????????????????????????????????????????????? -->
+<header>
+  <h1>&#x1F6F8; Dynatrace UFO Controller Mobile</h1>
+  <div class="conn-row">
+    <label for="ufoIp">UFO IP ADDRESS</label>
+    <input type="text" id="ufoIp" value="" placeholder="192.168.x.x" inputmode="decimal"
+           autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+    <button class="btn btn-accent" onclick="testConnection()">Connect</button>
+  </div>
+</header>
+<div id="statusBar">Ready — enter your UFO's IP address and click Connect.</div>
+
+<!-- ??? MAIN GRID ???????????????????????????????????????????????????????? -->
+<main>
+
+  <!-- ??? LEFT COLUMN: preview + logo ??????????????????????????????????? -->
+  <div style="display:flex; flex-direction:column; gap:16px;">
+
+    <!-- Visual preview -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Live Preview</div>
+      <div class="rings-container">
+        <div class="preview-wrap">
+          <svg id="topRingSvg" class="ring" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="35" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <text x="80" y="84" text-anchor="middle" fill="var(--muted)" font-size="10">TOP</text>
+          </svg>
+          <span class="ring-label">Top Ring</span>
+        </div>
+        <div class="preview-wrap">
+          <svg id="botRingSvg" class="ring" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="35" fill="none" stroke="var(--border)" stroke-width="1"/>
+            <text x="80" y="84" text-anchor="middle" fill="var(--muted)" font-size="10">BOTTOM</text>
+          </svg>
+          <span class="ring-label">Bottom Ring</span>
+        </div>
+      </div>
+      <!-- Logo indicator -->
+      <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px;">
+        <div id="logoIndicator" style="width:24px;height:24px;border-radius:50%;background:#333;border:2px solid var(--border);transition:background .3s;"></div>
+        <span style="font-size:12px; color:var(--muted);">Logo LED</span>
+      </div>
+    </div>
+
+    <!-- Logo control -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Logo LED</div>
+      <div class="logo-btns">
+        <button class="btn btn-accent"  onclick="sendLogo('on')">On</button>
+        <button class="btn btn-ghost"   onclick="sendLogo('off')">Off</button>
+        <button class="btn btn-yellow"  onclick="sendLogo('default')">Default</button>
+      </div>
+      <div class="divider"></div>
+      <div class="card-title" style="margin-bottom:10px;"><span class="dot" style="background:var(--purple)"></span>Individual Logo LED</div>
+      <div class="inline-row">
+        <div class="field" style="max-width:70px;">
+          <label class="field-label">LED #</label>
+          <input type="number" id="logoLedNum" value="0" min="0" max="3" />
+        </div>
+        <div class="field" style="max-width:50px;">
+          <label class="field-label">Color</label>
+          <input type="color" id="logoLedColor" value="#ffffff" />
+        </div>
+        <button class="btn btn-purple btn-sm" onclick="sendLogoLed()">Set</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ??? TOP RING CARD ??????????????????????????????????????????????????? -->
+  <div class="card" id="topCard">
+    <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Top Ring</div>
+
+    <!-- Background color -->
+    <div class="inline-row" style="margin-bottom:12px;">
+      <div class="field">
+        <label class="field-label">Background Color</label>
+        <input type="color" id="topBg" value="#000000" oninput="onTopBgChange()" />
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearTopBg()">Clear (Black)</button>
+    </div>
+
+    <!-- LED Segment builder -->
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">LED Segments</div>
+    <div class="inline-row">
+      <div class="field" style="max-width:65px;">
+        <label class="field-label">Start (0-14)</label>
+        <input type="number" id="topPos" value="0" min="0" max="14" />
+      </div>
+      <div class="field" style="max-width:65px;">
+        <label class="field-label">Count (1-15)</label>
+        <input type="number" id="topCount" value="3" min="1" max="15" />
+      </div>
+      <div class="field" style="max-width:50px;">
+        <label class="field-label">Color</label>
+        <input type="color" id="topColor" value="#ff0000" />
+      </div>
+      <button class="btn btn-accent btn-sm" onclick="addTopSegment()">+ Add</button>
+    </div>
+    <ul id="topSegList"></ul>
+
+    <!-- API preview -->
+    <div class="api-preview" id="topApiPreview">/api?…</div>
+
+    <!-- Whirl -->
+    <div class="divider"></div>
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">Whirl Animation</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Enable Whirl</span>
+      <label class="switch"><input type="checkbox" id="topWhirlOn" onchange="updateTopPreview()"><span class="slider"></span></label>
+    </div>
+    <div class="field">
+      <label class="field-label">Speed: <span id="topWhirlVal">150</span></label>
+      <input type="range" id="topWhirl" min="1" max="255" value="150" oninput="topWhirlVal.textContent=this.value; updateTopPreview();" />
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Direction: <strong id="topWhirlDirLabel">Clockwise</strong></span>
+      <label class="switch"><input type="checkbox" id="topWhirlCCW" onchange="topWhirlDirLabel.textContent=this.checked?'Counter-CW':'Clockwise'; updateTopPreview();"><span class="slider"></span></label>
+    </div>
+
+    <!-- Morph -->
+    <div class="divider"></div>
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">Morph Animation</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Enable Morph</span>
+      <label class="switch"><input type="checkbox" id="topMorphOn" onchange="updateTopPreview()"><span class="slider"></span></label>
+    </div>
+    <div class="inline-row">
+      <div class="field">
+        <label class="field-label">Period (ms): <span id="topMorphPeriodVal">500</span></label>
+        <input type="range" id="topMorphPeriod" min="100" max="5000" step="100" value="500" oninput="topMorphPeriodVal.textContent=this.value; updateTopPreview();" />
+      </div>
+      <div class="field">
+        <label class="field-label">Speed (1-10): <span id="topMorphSpeedVal">5</span></label>
+        <input type="range" id="topMorphSpeed" min="1" max="10" value="5" oninput="topMorphSpeedVal.textContent=this.value; updateTopPreview();" />
+      </div>
+    </div>
+
+    <!-- Send button -->
+    <div class="divider"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-accent" onclick="sendTop()">&#9658; Send Top Ring</button>
+      <button class="btn btn-danger btn-sm" onclick="clearTopDisplay()">&#128465; Clear Display</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearTopSettings()">&#128462; Clear Settings</button>
+    </div>
+  </div>
+
+  <!-- ??? BOTTOM RING CARD ???????????????????????????????????????????????? -->
+  <div class="card" id="botCard">
+    <div class="card-title"><span class="dot" style="background:var(--green)"></span>Bottom Ring</div>
+
+    <!-- Background color -->
+    <div class="inline-row" style="margin-bottom:12px;">
+      <div class="field">
+        <label class="field-label">Background Color</label>
+        <input type="color" id="botBg" value="#000000" oninput="onBotBgChange()" />
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="clearBotBg()">Clear (Black)</button>
+    </div>
+
+    <!-- LED Segment builder -->
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">LED Segments</div>
+    <div class="inline-row">
+      <div class="field" style="max-width:65px;">
+        <label class="field-label">Start (0-14)</label>
+        <input type="number" id="botPos" value="0" min="0" max="14" />
+      </div>
+      <div class="field" style="max-width:65px;">
+        <label class="field-label">Count (1-15)</label>
+        <input type="number" id="botCount" value="3" min="1" max="15" />
+      </div>
+      <div class="field" style="max-width:50px;">
+        <label class="field-label">Color</label>
+        <input type="color" id="botColor" value="#0000ff" />
+      </div>
+      <button class="btn btn-green btn-sm" onclick="addBotSegment()">+ Add</button>
+    </div>
+    <ul id="botSegList"></ul>
+
+    <!-- API preview -->
+    <div class="api-preview" id="botApiPreview">/api?…</div>
+
+    <!-- Whirl -->
+    <div class="divider"></div>
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">Whirl Animation</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Enable Whirl</span>
+      <label class="switch"><input type="checkbox" id="botWhirlOn" onchange="updateBotPreview()"><span class="slider"></span></label>
+    </div>
+    <div class="field">
+      <label class="field-label">Speed: <span id="botWhirlVal">150</span></label>
+      <input type="range" id="botWhirl" min="1" max="255" value="150" oninput="botWhirlVal.textContent=this.value; updateBotPreview();" />
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Direction: <strong id="botWhirlDirLabel">Clockwise</strong></span>
+      <label class="switch"><input type="checkbox" id="botWhirlCCW" onchange="botWhirlDirLabel.textContent=this.checked?'Counter-CW':'Clockwise'; updateBotPreview();"><span class="slider"></span></label>
+    </div>
+
+    <!-- Morph -->
+    <div class="divider"></div>
+    <div class="card-title" style="font-size:11px; margin-bottom:8px;">Morph Animation</div>
+    <div class="toggle-row">
+      <span class="toggle-label">Enable Morph</span>
+      <label class="switch"><input type="checkbox" id="botMorphOn" onchange="updateBotPreview()"><span class="slider"></span></label>
+    </div>
+    <div class="inline-row">
+      <div class="field">
+        <label class="field-label">Period (ms): <span id="botMorphPeriodVal">500</span></label>
+        <input type="range" id="botMorphPeriod" min="100" max="5000" step="100" value="500" oninput="botMorphPeriodVal.textContent=this.value; updateBotPreview();" />
+      </div>
+      <div class="field">
+        <label class="field-label">Speed (1-10): <span id="botMorphSpeedVal">5</span></label>
+        <input type="range" id="botMorphSpeed" min="1" max="10" value="5" oninput="botMorphSpeedVal.textContent=this.value; updateBotPreview();" />
+      </div>
+    </div>
+
+    <!-- Send button -->
+    <div class="divider"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-green" onclick="sendBot()">&#9658; Send Bottom Ring</button>
+      <button class="btn btn-danger btn-sm" onclick="clearBotDisplay()">&#128465; Clear Display</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearBotSettings()">&#128462; Clear Settings</button>
+    </div>
+  </div>
+
+  <!-- ??? QUICK PRESETS (full-width row) ????????????????????????????????? -->
+  <div class="card quick-card">
+    <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Quick Presets — applies to both rings simultaneously</div>
+    <div class="preset-grid">
+      <button class="btn btn-ghost" onclick="preset_allOff()">&#9899; All Off</button>
+      <button class="btn" style="background:#ff2233;color:#fff;" onclick="preset_redAlert()">&#128680; Red Alert</button>
+      <button class="btn" style="background:#00c820;color:#000;" onclick="preset_greenOK()">&#9989; Green OK</button>
+      <button class="btn" style="background:#ffcc00;color:#000;" onclick="preset_yellowWarn()">&#9888; Yellow Warning</button>
+      <button class="btn" style="background:#0088ff;color:#fff;" onclick="preset_blueInfo()">&#8505; Blue Info</button>
+      <button class="btn" style="background:#ff6a00;color:#fff;" onclick="preset_buildRunning()">&#9654; Build Running</button>
+      <button class="btn" style="background:#9b59ff;color:#fff;" onclick="preset_rainbow()">&#127752; Rainbow</button>
+      <button class="btn btn-ghost" onclick="preset_topRedBotGreen()">Top Red / Bot Green</button>
+      <button class="btn btn-ghost" onclick="preset_topGreenBotRed()">Top Green / Bot Red</button>
+      <button class="btn btn-ghost" onclick="preset_deploySuccess()">&#127881; Deploy Success</button>
+      <button class="btn btn-ghost" onclick="preset_deployFail()">&#128293; Deploy Failed</button>
+      <button class="btn btn-ghost" onclick="preset_spinningWhirl()">&#8635; Spinning Whirl</button>
+      <button class="btn btn-ghost" onclick="preset_rainbowSpin()">&#127752;&#8651; Rainbow Spin</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- ??? JAVASCRIPT ?????????????????????????????????????????????????????? -->
+<script>
+// ?? State ??????????????????????????????????????????????????????????????
+const topSegments = [];  // [{pos, count, color (hex no-hash)}]
+const botSegments = [];
+
+// ?? Helpers ????????????????????????????????????????????????????????????
+function hexNoHash(colorInput) {
+  // Convert #rrggbb ? RRGGBB
+  return colorInput.replace('#', '').toUpperCase();
+}
+
+function hexToRgb(hex) {
+  const n = parseInt(hex, 16);
+  return { r: (n >> 16) & 0xff, g: (n >> 8) & 0xff, b: n & 0xff };
+}
+
+function cssColor(rrggbb) {
+  return '#' + rrggbb.toLowerCase();
+}
+
+// ?? Status bar ?????????????????????????????????????????????????????????
+function setStatus(msg, cls = '') {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.className = cls;
+}
+
+// ?? API call ???????????????????????????????????????????????????????????
+async function sendApi(params) {
+  const ip = document.getElementById('ufoIp').value.trim();
+  if (!ip) {
+    setStatus('? Enter the UFO IP address and tap Connect first.', 'err');
+    return false;
+  }
+  const url = `http://${ip}/api?${params}`;
+  setStatus(`? ${url}`, '');
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(url, { 
+      mode: 'no-cors',
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    setStatus(`? Sent: /api?${params}`, 'ok');
+    return true;
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      setStatus(`? Timeout (5s) — UFO may be unreachable or slow. URL: ${url}`, 'err');
+    } else {
+      setStatus(`? Error: ${e.message} — check IP and network. URL: ${url}`, 'err');
+    }
+    return false;
+  }
+}
+
+// ?? Connection test ????????????????????????????????????????????????????
+async function testConnection() {
+  const ip = document.getElementById('ufoIp').value.trim();
+  if (!ip) { setStatus('? Enter the UFO IP address first.', 'err'); return; }
+  setStatus(`Connecting to ${ip}…`, '');
+  try {
+    // Use no-cors so we get an opaque success response when the UFO is reachable
+    // instead of a CORS TypeError that is indistinguishable from a network failure.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    await fetch(`http://${ip}/api?noop=1`, { mode: 'no-cors', signal: controller.signal });
+    clearTimeout(timeoutId);
+    setStatus(`? UFO reachable at ${ip} — commands will work.`, 'ok');
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      setStatus(`? Timeout — no response from ${ip}. Check IP address and Wi-Fi.`, 'err');
+    } else {
+      setStatus(`? Cannot reach UFO at ${ip}: ${e.message}. Check IP and network.`, 'err');
+    }
+  }
+}
+
+// ?? Logo ???????????????????????????????????????????????????????????????
+async function sendLogo(state) {
+  const ok = await sendApi(`logo=${state}`);
+  if (ok) {
+    const ind = document.getElementById('logoIndicator');
+    if (state === 'on')      ind.style.background = '#ffffff';
+    else if (state === 'off') ind.style.background = '#333';
+    else                      ind.style.background = '#00b4ff';
+  }
+}
+
+async function sendLogoLed() {
+  const led   = document.getElementById('logoLedNum').value;
+  const color = document.getElementById('logoLedColor').value;
+  const rgb   = hexToRgb(hexNoHash(color));
+  await sendApi(`logoled=${led}&r=${rgb.r}&g=${rgb.g}&b=${rgb.b}`);
+}
+
+// ?? Segment lists ??????????????????????????????????????????????????????
+function buildSegmentString(segs) {
+  return segs.map(s => `${s.pos}|${s.count}|${s.color}`).join('|');
+}
+
+function renderSegList(listId, segs, updateFn) {
+  const ul = document.getElementById(listId);
+  ul.innerHTML = '';
+  segs.forEach((seg, idx) => {
+    const li = document.createElement('li');
+    li.className = 'seg-item';
+    li.innerHTML = `
+      <span class="seg-swatch" style="background:#${seg.color.toLowerCase()}"></span>
+      <span>LED ${seg.pos} — ${seg.count} LED${seg.count>1?'s':''} — #${seg.color}</span>
+      <button title="Remove" onclick="removeSeg('${listId}',${idx})">&times;</button>`;
+    ul.appendChild(li);
+  });
+  updateFn();
+}
+
+function removeSeg(listId, idx) {
+  if (listId === 'topSegList') { topSegments.splice(idx,1); renderSegList('topSegList', topSegments, updateTopPreview); }
+  else                         { botSegments.splice(idx,1); renderSegList('botSegList', botSegments, updateBotPreview); }
+}
+
+// ?? Top ring ???????????????????????????????????????????????????????????
+function addTopSegment() {
+  const pos   = parseInt(document.getElementById('topPos').value);
+  const count = parseInt(document.getElementById('topCount').value);
+  const color = hexNoHash(document.getElementById('topColor').value);
+  if (isNaN(pos) || isNaN(count) || pos < 0 || pos > 14 || count < 1 || count > 15) {
+    setStatus('? Invalid top segment — pos 0-14, count 1-15.', 'err'); return;
+  }
+  topSegments.push({ pos, count, color });
+  renderSegList('topSegList', topSegments, updateTopPreview);
+}
+
+function buildTopParams() {
+  const parts = ['top_init=1'];
+  if (topSegments.length) parts.push(`top=${buildSegmentString(topSegments)}`);
+  const bg = hexNoHash(document.getElementById('topBg').value);
+  if (bg !== '000000') parts.push(`top_bg=${bg}`);
+  if (document.getElementById('topWhirlOn').checked) {
+    const speed = document.getElementById('topWhirl').value;
+    const ccw   = document.getElementById('topWhirlCCW').checked;
+    parts.push(`top_whirl=${speed}${ccw ? '|' : ''}`);
+  }
+  if (document.getElementById('topMorphOn').checked) {
+    const period = document.getElementById('topMorphPeriod').value;
+    const spd    = document.getElementById('topMorphSpeed').value;
+    parts.push(`top_morph=${period}|${spd}`);
+  }
+  return parts.join('&');
+}
+
+function updateTopPreview() {
+  document.getElementById('topApiPreview').textContent = '/api?' + buildTopParams();
+  redrawRing('top', topSegments, hexNoHash(document.getElementById('topBg').value));
+}
+
+function onTopBgChange() { updateTopPreview(); }
+function clearTopBg()    { document.getElementById('topBg').value = '#000000'; updateTopPreview(); }
+
+async function sendTop() {
+  await sendApi(buildTopParams());
+}
+
+async function clearTopDisplay() {
+  await sendApi('top_init=1');
+  setStatus('? Top ring display cleared (settings preserved)', 'ok');
+}
+
+async function clearTopSettings() {
+  topSegments.length = 0;
+  document.getElementById('topBg').value = '#000000';
+  document.getElementById('topWhirlOn').checked = false;
+  document.getElementById('topMorphOn').checked = false;
+  document.getElementById('topMorphOn').checked = false;
+  renderSegList('topSegList', topSegments, updateTopPreview);
+  await sendApi('top_init=1');
+  setStatus('? Top ring settings cleared and display cleared', 'ok');
+}
+
+async function clearTop() {
+  // Legacy function for backward compatibility
+  await clearTopDisplay();
+}
+
+// ?? Bottom ring ????????????????????????????????????????????????????????
+function addBotSegment() {
+  const pos   = parseInt(document.getElementById('botPos').value);
+  const count = parseInt(document.getElementById('botCount').value);
+  const color = hexNoHash(document.getElementById('botColor').value);
+  if (isNaN(pos) || isNaN(count) || pos < 0 || pos > 14 || count < 1 || count > 15) {
+    setStatus('? Invalid bottom segment — pos 0-14, count 1-15.', 'err'); return;
+  }
+  botSegments.push({ pos, count, color });
+  renderSegList('botSegList', botSegments, updateBotPreview);
+}
+
+function buildBotParams() {
+  const parts = ['bottom_init=1'];
+  if (botSegments.length) parts.push(`bottom=${buildSegmentString(botSegments)}`);
+  const bg = hexNoHash(document.getElementById('botBg').value);
+  if (bg !== '000000') parts.push(`bottom_bg=${bg}`);
+  if (document.getElementById('botWhirlOn').checked) {
+    const speed = document.getElementById('botWhirl').value;
+    const ccw   = document.getElementById('botWhirlCCW').checked;
+    parts.push(`bottom_whirl=${speed}${ccw ? '|' : ''}`);
+  }
+  if (document.getElementById('botMorphOn').checked) {
+    const period = document.getElementById('botMorphPeriod').value;
+    const spd    = document.getElementById('botMorphSpeed').value;
+    parts.push(`bottom_morph=${period}|${spd}`);
+  }
+  return parts.join('&');
+}
+
+function updateBotPreview() {
+  document.getElementById('botApiPreview').textContent = '/api?' + buildBotParams();
+  redrawRing('bot', botSegments, hexNoHash(document.getElementById('botBg').value));
+}
+
+function onBotBgChange() { updateBotPreview(); }
+function clearBotBg()    { document.getElementById('botBg').value = '#000000'; updateBotPreview(); }
+
+async function sendBot() {
+  await sendApi(buildBotParams());
+}
+
+async function clearBotDisplay() {
+  await sendApi('bottom_init=1');
+  setStatus('? Bottom ring display cleared (settings preserved)', 'ok');
+}
+
+async function clearBotSettings() {
+  botSegments.length = 0;
+  document.getElementById('botBg').value = '#000000';
+  document.getElementById('botWhirlOn').checked = false;
+  document.getElementById('botMorphOn').checked = false;
+  document.getElementById('botMorphOn').checked = false;
+  renderSegList('botSegList', botSegments, updateBotPreview);
+  await sendApi('bottom_init=1');
+  setStatus('? Bottom ring settings cleared and display cleared', 'ok');
+}
+
+async function clearBot() {
+  // Legacy function for backward compatibility
+  await clearBotDisplay();
+}
+
+// ?? SVG ring visualization ?????????????????????????????????????????????
+const LED_COUNT = 15;
+const CX = 80, CY = 80, R = 62, DOT_R = 7;
+
+function getLedPos(i) {
+  const angle = (i / LED_COUNT) * 2 * Math.PI - Math.PI / 2;
+  return { x: CX + R * Math.cos(angle), y: CY + R * Math.sin(angle) };
+}
+
+function initRingSvg(svgId) {
+  const svg = document.getElementById(svgId);
+  for (let i = 0; i < LED_COUNT; i++) {
+    const { x, y } = getLedPos(i);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x.toFixed(1));
+    circle.setAttribute('cy', y.toFixed(1));
+    circle.setAttribute('r', DOT_R);
+    circle.setAttribute('fill', '#222');
+    circle.setAttribute('stroke', '#444');
+    circle.setAttribute('stroke-width', '1');
+    circle.setAttribute('class', 'led-dot');
+    circle.dataset.index = i;
+    // Label
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x.toFixed(1));
+    text.setAttribute('y', (y + 1).toFixed(1));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '6');
+    text.setAttribute('fill', '#666');
+    text.setAttribute('pointer-events', 'none');
+    text.textContent = i;
+    svg.appendChild(circle);
+    svg.appendChild(text);
+  }
+}
+
+function redrawRing(which, segs, bgHex) {
+  const svgId  = which === 'top' ? 'topRingSvg' : 'botRingSvg';
+  const svg    = document.getElementById(svgId);
+  const dots   = svg.querySelectorAll('.led-dot');
+  const bgColor = bgHex && bgHex !== '000000' ? '#' + bgHex.toLowerCase() : '#222';
+
+  // Build a per-LED color map
+  const ledColors = Array(LED_COUNT).fill(bgColor);
+  segs.forEach(seg => {
+    for (let i = 0; i < seg.count; i++) {
+      ledColors[(seg.pos + i) % LED_COUNT] = '#' + seg.color.toLowerCase();
+    }
+  });
+  dots.forEach((dot, i) => {
+    dot.setAttribute('fill', ledColors[i]);
+    dot.setAttribute('stroke', ledColors[i] === '#222' ? '#444' : ledColors[i]);
+  });
+}
+
+// ?? Presets ????????????????????????????????????????????????????????????
+
+// Apply preset config to UI, then send to UFO
+async function applyPresetToUI(config, send = true) {
+  // Top ring
+  if (config.top) {
+    topSegments.length = 0;
+    if (config.top.segments) topSegments.push(...config.top.segments);
+    if (config.top.bg) document.getElementById('topBg').value = '#' + config.top.bg;
+    if (config.top.whirl !== undefined) {
+      document.getElementById('topWhirlOn').checked = true;
+      document.getElementById('topWhirl').value = config.top.whirl.speed;
+      document.getElementById('topWhirlVal').textContent = config.top.whirl.speed;
+      document.getElementById('topWhirlCCW').checked = config.top.whirl.ccw;
+      document.getElementById('topWhirlDirLabel').textContent = config.top.whirl.ccw ? 'Counter-CW' : 'Clockwise';
+    }
+    if (config.top.morph !== undefined) {
+      document.getElementById('topMorphOn').checked = true;
+      document.getElementById('topMorphPeriod').value = config.top.morph.period;
+      document.getElementById('topMorphPeriodVal').textContent = config.top.morph.period;
+      document.getElementById('topMorphSpeed').value = config.top.morph.speed;
+      document.getElementById('topMorphSpeedVal').textContent = config.top.morph.speed;
+    }
+    renderSegList('topSegList', topSegments, updateTopPreview);
+  }
+
+  // Bottom ring
+  if (config.bottom) {
+    botSegments.length = 0;
+    if (config.bottom.segments) botSegments.push(...config.bottom.segments);
+    if (config.bottom.bg) document.getElementById('botBg').value = '#' + config.bottom.bg;
+    if (config.bottom.whirl !== undefined) {
+      document.getElementById('botWhirlOn').checked = true;
+      document.getElementById('botWhirl').value = config.bottom.whirl.speed;
+      document.getElementById('botWhirlVal').textContent = config.bottom.whirl.speed;
+      document.getElementById('botWhirlCCW').checked = config.bottom.whirl.ccw;
+      document.getElementById('botWhirlDirLabel').textContent = config.bottom.whirl.ccw ? 'Counter-CW' : 'Clockwise';
+    }
+    if (config.bottom.morph !== undefined) {
+      document.getElementById('botMorphOn').checked = true;
+      document.getElementById('botMorphPeriod').value = config.bottom.morph.period;
+      document.getElementById('botMorphPeriodVal').textContent = config.bottom.morph.period;
+      document.getElementById('botMorphSpeed').value = config.bottom.morph.speed;
+      document.getElementById('botMorphSpeedVal').textContent = config.bottom.morph.speed;
+    }
+    renderSegList('botSegList', botSegments, updateBotPreview);
+  }
+
+  // Logo
+  if (config.logo) {
+    const ind = document.getElementById('logoIndicator');
+    if (config.logo === 'on')      ind.style.background = '#ffffff';
+    else if (config.logo === 'off') ind.style.background = '#333';
+    else                            ind.style.background = '#00b4ff';
+  }
+
+  // Send to UFO if requested
+  if (send) {
+    let params = '';
+    if (config.logo) params += `logo=${config.logo}&`;
+    if (config.top) params += buildTopParams() + '&';
+    if (config.bottom) params += buildBotParams() + '&';
+    params = params.replace(/&$/, ''); // remove trailing &
+    if (params) await sendApi(params);
+  }
+}
+
+async function preset_allOff() {
+  const config = {
+    logo: 'off',
+    top: { segments: [], bg: '000000' },
+    bottom: { segments: [], bg: '000000' }
+  };
+  await applyPresetToUI(config);
+  setStatus('? All LEDs off', 'ok');
+}
+
+async function preset_redAlert() {
+  const config = {
+    logo: 'on',
+    top: {
+      segments: [{pos: 0, count: 15, color: 'FF0000'}],
+      bg: '000000',
+      whirl: {speed: 200, ccw: false}
+    },
+    bottom: {
+      segments: [{pos: 0, count: 15, color: 'FF0000'}],
+      bg: '000000',
+      whirl: {speed: 200, ccw: true}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Red Alert preset sent', 'ok');
+}
+
+async function preset_greenOK() {
+  const config = {
+    logo: 'on',
+    top: {segments: [{pos: 0, count: 15, color: '00FF00'}], bg: '000000'},
+    bottom: {segments: [{pos: 0, count: 15, color: '00FF00'}], bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Green OK preset sent', 'ok');
+}
+
+async function preset_yellowWarn() {
+  const config = {
+    logo: 'on',
+    top: {segments: [{pos: 0, count: 15, color: 'FFCC00'}], bg: '000000'},
+    bottom: {segments: [{pos: 0, count: 15, color: 'FFCC00'}], bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Yellow Warning preset sent', 'ok');
+}
+
+async function preset_blueInfo() {
+  const config = {
+    logo: 'on',
+    top: {segments: [{pos: 0, count: 15, color: '0088FF'}], bg: '000000'},
+    bottom: {segments: [{pos: 0, count: 15, color: '0088FF'}], bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Blue Info preset sent', 'ok');
+}
+
+async function preset_buildRunning() {
+  const config = {
+    logo: 'on',
+    top: {
+      segments: [{pos: 0, count: 3, color: 'FFA500'}],
+      bg: '001800',
+      whirl: {speed: 180, ccw: false}
+    },
+    bottom: {
+      segments: [{pos: 0, count: 3, color: 'FFA500'}],
+      bg: '001800',
+      whirl: {speed: 180, ccw: true}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Build Running preset sent', 'ok');
+}
+
+async function preset_rainbow() {
+  const segs = [
+    {pos: 0, count: 3, color: 'FF0000'},
+    {pos: 3, count: 3, color: 'FF7F00'},
+    {pos: 6, count: 3, color: 'FFFF00'},
+    {pos: 9, count: 3, color: '00FF00'},
+    {pos: 12, count: 3, color: '0000FF'}
+  ];
+  const config = {
+    logo: 'on',
+    top: {segments: segs, bg: '000000'},
+    bottom: {segments: segs, bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Rainbow preset sent', 'ok');
+}
+
+async function preset_topRedBotGreen() {
+  const config = {
+    logo: 'on',
+    top: {segments: [{pos: 0, count: 15, color: 'FF0000'}], bg: '000000'},
+    bottom: {segments: [{pos: 0, count: 15, color: '00FF00'}], bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Top Red / Bottom Green preset sent', 'ok');
+}
+
+async function preset_topGreenBotRed() {
+  const config = {
+    logo: 'on',
+    top: {segments: [{pos: 0, count: 15, color: '00FF00'}], bg: '000000'},
+    bottom: {segments: [{pos: 0, count: 15, color: 'FF0000'}], bg: '000000'}
+  };
+  await applyPresetToUI(config);
+  setStatus('? Top Green / Bottom Red preset sent', 'ok');
+}
+
+async function preset_deploySuccess() {
+  const config = {
+    logo: 'on',
+    top: {
+      segments: [{pos: 0, count: 15, color: '00FF44'}],
+      bg: '000000',
+      morph: {period: 400, speed: 8}
+    },
+    bottom: {
+      segments: [{pos: 0, count: 15, color: '00FF44'}],
+      bg: '000000',
+      morph: {period: 400, speed: 8}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Deploy Success preset sent', 'ok');
+}
+
+async function preset_deployFail() {
+  const config = {
+    logo: 'on',
+    top: {
+      segments: [{pos: 0, count: 15, color: 'FF0000'}],
+      bg: '000000',
+      whirl: {speed: 230, ccw: false},
+      morph: {period: 300, speed: 10}
+    },
+    bottom: {
+      segments: [{pos: 0, count: 15, color: 'FF0000'}],
+      bg: '000000',
+      whirl: {speed: 230, ccw: true},
+      morph: {period: 300, speed: 10}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Deploy Failed preset sent', 'ok');
+}
+
+async function preset_rainbowSpin() {
+  const segs = [
+    {pos: 0, count: 1, color: 'FF0000'},
+    {pos: 1, count: 1, color: 'FF6600'},
+    {pos: 2, count: 1, color: 'FFCC00'},
+    {pos: 3, count: 1, color: 'CCFF00'},
+    {pos: 4, count: 1, color: '66FF00'},
+    {pos: 5, count: 1, color: '00FF00'},
+    {pos: 6, count: 1, color: '00FF66'},
+    {pos: 7, count: 1, color: '00FFCC'},
+    {pos: 8, count: 1, color: '00CCFF'},
+    {pos: 9, count: 1, color: '0066FF'},
+    {pos: 10, count: 1, color: '0000FF'},
+    {pos: 11, count: 1, color: '6600FF'},
+    {pos: 12, count: 1, color: 'CC00FF'},
+    {pos: 13, count: 1, color: 'FF00CC'},
+    {pos: 14, count: 1, color: 'FF0066'}
+  ];
+  const config = {
+    logo: 'on',
+    top: {
+      segments: segs,
+      bg: '000000',
+      whirl: {speed: 180, ccw: false}
+    },
+    bottom: {
+      segments: segs,
+      bg: '000000',
+      whirl: {speed: 180, ccw: true}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Rainbow Spin preset sent (top ? CW, bottom ? CCW)', 'ok');
+}
+
+async function preset_spinningWhirl() {
+  const segs = [
+    {pos: 0, count: 1, color: 'FFC000'},
+    {pos: 1, count: 3, color: 'FF0000'},
+    {pos: 4, count: 1, color: 'FFC000'}
+  ];
+  const config = {
+    logo: 'on',
+    top: {
+      segments: segs,
+      bg: '00100A',
+      whirl: {speed: 220, ccw: false}
+    },
+    bottom: {
+      segments: segs,
+      bg: '00100A',
+      whirl: {speed: 220, ccw: true}
+    }
+  };
+  await applyPresetToUI(config);
+  setStatus('? Spinning Whirl preset sent', 'ok');
+}
+
+// ?? Init ???????????????????????????????????????????????????????????????
+initRingSvg('topRingSvg');
+initRingSvg('botRingSvg');
+updateTopPreview();
+updateBotPreview();
+</script>
+</body>
+</html>
