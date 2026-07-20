@@ -42,6 +42,8 @@ Touch-friendly interface optimized for phones in portrait mode.
 
 ## How to use
 
+Download the respective .html controller to the device you want to control the UFO from and open in a browser.
+
 ### 1. Connect to UFO
 
 Enter the UFO's IP address in the top-left field and click **Connect**.
