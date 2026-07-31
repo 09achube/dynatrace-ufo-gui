@@ -435,7 +435,7 @@
     <button class="btn btn-accent" onclick="testConnection()">Connect</button>
   </div>
 </header>
-<div id="statusBar">Ready — enter your UFO's IP address and click Connect.</div>
+<div id="statusBar">Ready ï¿½ enter your UFO's IP address and click Connect.</div>
 
 <!-- ??? MAIN GRID ???????????????????????????????????????????????????????? -->
 <main>
@@ -527,7 +527,7 @@
     <ul id="topSegList"></ul>
 
     <!-- API preview -->
-    <div class="api-preview" id="topApiPreview">/api?…</div>
+    <div class="api-preview" id="topApiPreview">/api?ï¿½</div>
 
     <!-- Whirl -->
     <div class="divider"></div>
@@ -605,7 +605,7 @@
     <ul id="botSegList"></ul>
 
     <!-- API preview -->
-    <div class="api-preview" id="botApiPreview">/api?…</div>
+    <div class="api-preview" id="botApiPreview">/api?ï¿½</div>
 
     <!-- Whirl -->
     <div class="divider"></div>
@@ -652,7 +652,7 @@
 
   <!-- ??? QUICK PRESETS (full-width row) ????????????????????????????????? -->
   <div class="card quick-card">
-    <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Quick Presets — applies to both rings simultaneously</div>
+    <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Quick Presets ï¿½ applies to both rings simultaneously</div>
     <div class="preset-grid">
       <button class="btn btn-ghost" onclick="preset_allOff()">&#9899; All Off</button>
       <button class="btn" style="background:#ff2233;color:#fff;" onclick="preset_redAlert()">&#128680; Red Alert</button>
@@ -721,9 +721,9 @@ async function sendApi(params) {
     return true;
   } catch (e) {
     if (e.name === 'AbortError') {
-      setStatus(`? Timeout (5s) — UFO may be unreachable or slow. URL: ${url}`, 'err');
+      setStatus(`? Timeout (5s) ï¿½ UFO may be unreachable or slow. URL: ${url}`, 'err');
     } else {
-      setStatus(`? Error: ${e.message} — check IP and network. URL: ${url}`, 'err');
+      setStatus(`? Error: ${e.message} ï¿½ check IP and network. URL: ${url}`, 'err');
     }
     return false;
   }
@@ -733,7 +733,7 @@ async function sendApi(params) {
 async function testConnection() {
   const ip = document.getElementById('ufoIp').value.trim();
   if (!ip) { setStatus('? Enter the UFO IP address first.', 'err'); return; }
-  setStatus(`Connecting to ${ip}…`, '');
+  setStatus(`Connecting to ${ip}ï¿½`, '');
   try {
     // Use no-cors so we get an opaque success response when the UFO is reachable
     // instead of a CORS TypeError that is indistinguishable from a network failure.
@@ -741,10 +741,10 @@ async function testConnection() {
     const timeoutId = setTimeout(() => controller.abort(), 4000);
     await fetch(`http://${ip}/api?noop=1`, { mode: 'no-cors', signal: controller.signal });
     clearTimeout(timeoutId);
-    setStatus(`? UFO reachable at ${ip} — commands will work.`, 'ok');
+    setStatus(`? UFO reachable at ${ip} ï¿½ commands will work.`, 'ok');
   } catch (e) {
     if (e.name === 'AbortError') {
-      setStatus(`? Timeout — no response from ${ip}. Check IP address and Wi-Fi.`, 'err');
+      setStatus(`? Timeout ï¿½ no response from ${ip}. Check IP address and Wi-Fi.`, 'err');
     } else {
       setStatus(`? Cannot reach UFO at ${ip}: ${e.message}. Check IP and network.`, 'err');
     }
@@ -782,7 +782,7 @@ function renderSegList(listId, segs, updateFn) {
     li.className = 'seg-item';
     li.innerHTML = `
       <span class="seg-swatch" style="background:#${seg.color.toLowerCase()}"></span>
-      <span>LED ${seg.pos} — ${seg.count} LED${seg.count>1?'s':''} — #${seg.color}</span>
+      <span>LED ${seg.pos} ï¿½ ${seg.count} LED${seg.count>1?'s':''} ï¿½ #${seg.color}</span>
       <button title="Remove" onclick="removeSeg('${listId}',${idx})">&times;</button>`;
     ul.appendChild(li);
   });
@@ -800,7 +800,7 @@ function addTopSegment() {
   const count = parseInt(document.getElementById('topCount').value);
   const color = hexNoHash(document.getElementById('topColor').value);
   if (isNaN(pos) || isNaN(count) || pos < 0 || pos > 14 || count < 1 || count > 15) {
-    setStatus('? Invalid top segment — pos 0-14, count 1-15.', 'err'); return;
+    setStatus('? Invalid top segment ï¿½ pos 0-14, count 1-15.', 'err'); return;
   }
   topSegments.push({ pos, count, color });
   renderSegList('topSegList', topSegments, updateTopPreview);
@@ -863,7 +863,7 @@ function addBotSegment() {
   const count = parseInt(document.getElementById('botCount').value);
   const color = hexNoHash(document.getElementById('botColor').value);
   if (isNaN(pos) || isNaN(count) || pos < 0 || pos > 14 || count < 1 || count > 15) {
-    setStatus('? Invalid bottom segment — pos 0-14, count 1-15.', 'err'); return;
+    setStatus('? Invalid bottom segment ï¿½ pos 0-14, count 1-15.', 'err'); return;
   }
   botSegments.push({ pos, count, color });
   renderSegList('botSegList', botSegments, updateBotPreview);
