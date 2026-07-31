@@ -285,6 +285,61 @@
     @media(max-width:600px){
       main { grid-template-columns: 1fr; }
     }
+    /* ── Tab bar ─────────────────────────────────────── */
+    .tab-bar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+      padding: 0 20px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      padding: 10px 18px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    /* ── DT / WiFi pages ────────────────────────────────── */
+    #pageDynatrace, #pageWifi {
+      display: none;
+      padding: 20px;
+      max-width: 680px;
+    }
+    #pageDynatrace.visible, #pageWifi.visible { display: block; }
+    #pageLeds.hidden { display: none; }
+    .dt-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .dt-status-badge.enabled  { background: #0d2e1a; color: var(--green);  border: 1px solid var(--green); }
+    .dt-status-badge.disabled { background: #1e1a0d; color: var(--yellow); border: 1px solid var(--yellow); }
+    .dt-status-badge.unknown  { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+    .dt-card { max-width: 640px; }
+    .masked-field { position: relative; }
+    .masked-field input { padding-right: 38px; }
+    .masked-field .eye-btn {
+      position: absolute;
+      right: 8px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: var(--muted); cursor: pointer;
+      font-size: 15px; line-height: 1;
+      padding: 0;
+    }
+    .masked-field .eye-btn:hover { color: var(--text); }
   </style>
 </head>
 <body>
@@ -300,7 +355,15 @@
 </header>
 <div id="statusBar">Ready — enter your UFO's IP address and click Connect.</div>
 
-<!-- ═══ MAIN GRID ════════════════════════════════════════════════════════ -->
+<!-- ═══ TAB BAR ═════════════════════════════════════════════════════════ -->
+<nav class="tab-bar">
+  <button class="tab-btn active" id="tabLeds"       onclick="switchTab('leds')">&#128161; LED Control</button>
+  <button class="tab-btn"        id="tabDynatrace"  onclick="switchTab('dynatrace')">&#9741; Dynatrace Integration</button>
+  <button class="tab-btn"        id="tabWifi"       onclick="switchTab('wifi')">&#128246; Wi-Fi Settings</button>
+</nav>
+
+<!-- ═══ PAGE: LED CONTROL ════════════════════════════════════════════════ -->
+<div id="pageLeds">
 <main>
 
   <!-- ─── LEFT COLUMN: preview + logo ─────────────────────────────────── -->
@@ -534,6 +597,136 @@
   </div>
 
 </main>
+</div><!-- /#pageLeds -->
+
+<!-- ═══ PAGE: DYNATRACE INTEGRATION ═════════════════════════════════════ -->
+<div id="pageDynatrace">
+
+  <!-- Current status -->
+  <div class="card dt-card" style="margin-bottom:16px;">
+    <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Integration Status
+      <span id="dtStatusBadge" class="dt-status-badge unknown" style="margin-left:auto;">&#9679; Unknown</span>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="dtLoadConfig()">&#8635; Load Current Settings</button>
+    </div>
+  </div>
+
+  <!-- Settings form -->
+  <div class="card dt-card">
+    <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Dynatrace SaaS / Managed Integration</div>
+
+    <!-- Enable toggle -->
+    <div class="toggle-row" style="margin-bottom:14px;">
+      <span class="toggle-label" style="font-size:13px; color:var(--text);">Enable Dynatrace Integration</span>
+      <label class="switch"><input type="checkbox" id="dtEnabled"><span class="slider"></span></label>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field">
+      <label class="field-label">Dynatrace Environment ID</label>
+      <input type="text" id="dtEnvId" placeholder="e.g. abc12345" autocomplete="off" spellcheck="false" />
+      <span style="font-size:11px;color:var(--muted);">Found in your Dynatrace URL: https://<strong>&lt;EnvironmentID&gt;</strong>.live.dynatrace.com</span>
+    </div>
+
+    <div class="field" style="margin-top:10px;">
+      <label class="field-label">Dynatrace API Token</label>
+      <div class="masked-field">
+        <input type="password" id="dtApiKey" placeholder="dt0c01.XXXXXXXXXX…" autocomplete="off" spellcheck="false" />
+        <button class="eye-btn" onclick="toggleApiKeyVisibility()" title="Show/hide token">&#128065;</button>
+      </div>
+      <span style="font-size:11px;color:var(--muted);">Requires <code>problems.read</code> scope (API v1) or <code>Read problems</code> (API v2).</span>
+    </div>
+
+    <div class="field" style="margin-top:10px;">
+      <label class="field-label">Polling Interval: <span id="dtIntervalVal">60</span> seconds</label>
+      <input type="range" id="dtInterval" min="30" max="300" step="10" value="60"
+             oninput="dtIntervalVal.textContent=this.value" />
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
+        <span>30 s (min)</span><span>300 s</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- API preview -->
+    <div class="api-preview" id="dtApiPreview">/api?dynatrace-environmentid=…</div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+      <button class="btn btn-accent" onclick="dtSaveConfig()">&#10003; Save Integration Settings</button>
+      <button class="btn btn-ghost btn-sm" onclick="dtLoadConfig()">&#8635; Reload from UFO</button>
+    </div>
+  </div>
+
+  <!-- Info card -->
+  <div class="card dt-card" style="margin-top:16px;">
+    <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>How It Works</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7;">
+      When enabled, the UFO polls the Dynatrace Problems API at the configured interval.
+      Open problems are mapped to LED colours on the rings — typically
+      <span style="color:var(--red);">red</span> for active problems and
+      <span style="color:var(--green);">green</span> when everything is healthy.
+      The UFO firmware stores these credentials in its local flash (SPIFFS) — they are not
+      transmitted beyond your local network.
+    </p>
+  </div>
+
+</div><!-- /#pageDynatrace -->
+
+<!-- ═══ PAGE: WI-FI SETTINGS ════════════════════════════════════════════ -->
+<div id="pageWifi">
+
+  <!-- Network Info -->
+  <div class="card dt-card" style="margin-bottom:16px;">
+    <div class="card-title"><span class="dot" style="background:var(--accent)"></span>Current Network Info
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="wifiLoadInfo()">&#8635; Refresh</button>
+    </div>
+    <div id="wifiInfoGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:12px;">
+      <span style="color:var(--muted);">Click Refresh or switch to this tab to load.</span>
+    </div>
+  </div>
+
+  <!-- Change Wi-Fi credentials -->
+  <div class="card dt-card" style="margin-bottom:16px;">
+    <div class="card-title"><span class="dot" style="background:var(--yellow)"></span>Change Wi-Fi Credentials
+      <span style="margin-left:auto;font-size:11px;color:var(--red);">&#9888; UFO will reboot</span>
+    </div>
+    <div class="field">
+      <label class="field-label">Network SSID</label>
+      <input type="text" id="wifiSsid" placeholder="Your Wi-Fi network name" autocomplete="off" spellcheck="false"
+             oninput="wifiUpdateApiPreview()" />
+    </div>
+    <div class="field" style="margin-top:10px;">
+      <label class="field-label">Password</label>
+      <div class="masked-field">
+        <input type="password" id="wifiPwd" placeholder="Wi-Fi password" autocomplete="new-password" spellcheck="false"
+               oninput="wifiUpdateApiPreview()" />
+        <button class="eye-btn" onclick="toggleWifiPwdVisibility()" title="Show/hide password">&#128065;</button>
+      </div>
+    </div>
+    <div class="api-preview" id="wifiCredsApiPreview">/api?ssid=…&amp;pwd=…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn btn-yellow" onclick="wifiSaveCredentials()">&#9654; Apply &amp; Reboot UFO</button>
+    </div>
+  </div>
+
+  <!-- Change hostname -->
+  <div class="card dt-card">
+    <div class="card-title"><span class="dot" style="background:var(--purple)"></span>Hostname</div>
+    <div class="field">
+      <label class="field-label">Hostname</label>
+      <input type="text" id="wifiHostname" placeholder="e.g. my-ufo" autocomplete="off" spellcheck="false"
+             oninput="wifiUpdateHostnamePreview()" />
+      <span style="font-size:11px;color:var(--muted);">Used as the mDNS/DHCP hostname on your network.</span>
+    </div>
+    <div class="api-preview" id="wifiHostnameApiPreview">/api?hostname=…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn btn-purple" onclick="wifiSaveHostname()">&#10003; Save Hostname</button>
+    </div>
+  </div>
+
+</div><!-- /#pageWifi -->
 
 <!-- ═══ JAVASCRIPT ══════════════════════════════════════════════════════ -->
 <script>
@@ -599,11 +792,22 @@ async function testConnection() {
   setStatus(`Connecting to ${ip}…`, '');
   try {
     const res = await fetch(`http://${ip}/info`, { mode: 'cors', signal: AbortSignal.timeout(4000) });
+    if (!res.ok) {
+      setStatus(`✗ UFO responded with HTTP ${res.status} — check IP and firmware endpoint.`, 'err');
+      return;
+    }
     const json = await res.json();
+    if (!json || typeof json !== 'object' || !('firmwareversion' in json) || !('ssid' in json)) {
+      setStatus(`✗ ${ip} responded, but it does not look like a UFO controller endpoint.`, 'err');
+      return;
+    }
     setStatus(`✓ Connected — ${ip} | FW: ${json.firmwareversion || '?'} | SSID: ${json.ssid || '?'} | Heap: ${json.heap || '?'}`, 'ok');
   } catch (e) {
-    // CORS might block reading, but if server responded the request went through
-    setStatus(`Connected (CORS-opaque) — UFO at ${ip} is reachable. Commands will work.`, 'ok');
+    if (e.name === 'AbortError') {
+      setStatus(`✗ Timeout (4s) — no response from ${ip}.`, 'err');
+    } else {
+      setStatus(`✗ Could not verify UFO at ${ip}: ${e.message}`, 'err');
+    }
   }
 }
 
@@ -1113,6 +1317,189 @@ initRingSvg('topRingSvg');
 initRingSvg('botRingSvg');
 updateTopPreview();
 updateBotPreview();
+
+// ── Tab switching ──────────────────────────────────────────────────────
+function switchTab(tab) {
+  const pages = {
+    leds:       document.getElementById('pageLeds'),
+    dynatrace:  document.getElementById('pageDynatrace'),
+    wifi:       document.getElementById('pageWifi')
+  };
+  const tabs = {
+    leds:       document.getElementById('tabLeds'),
+    dynatrace:  document.getElementById('tabDynatrace'),
+    wifi:       document.getElementById('tabWifi')
+  };
+
+  // Hide all pages / deactivate all tabs
+  pages.leds.classList.add('hidden');
+  pages.dynatrace.classList.remove('visible');
+  pages.wifi.classList.remove('visible');
+  Object.values(tabs).forEach(t => t.classList.remove('active'));
+
+  if (tab === 'leds') {
+    pages.leds.classList.remove('hidden');
+  } else {
+    pages[tab].classList.add('visible');
+    if (tab === 'dynatrace') dtUpdateApiPreview();
+    if (tab === 'wifi')      wifiLoadInfo();
+  }
+  tabs[tab].classList.add('active');
+}
+
+// ── Dynatrace Integration ──────────────────────────────────────────────
+function dtUpdateApiPreview() {
+  const envId    = document.getElementById('dtEnvId').value.trim();
+  const apiKey   = document.getElementById('dtApiKey').value.trim();
+  const interval = document.getElementById('dtInterval').value;
+  const enabled  = document.getElementById('dtEnabled').checked;
+  let params = `dynatrace-environmentid=${encodeURIComponent(envId)}&dynatrace-apikey=${encodeURIComponent(apiKey)}&dynatrace-interval=${interval}`;
+  if (enabled) params += '&dynatrace-on=1';
+  document.getElementById('dtApiPreview').textContent = '/api?' + params;
+}
+
+// Wire live preview updates
+['dtEnvId', 'dtApiKey', 'dtInterval', 'dtEnabled'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', dtUpdateApiPreview);
+  el.addEventListener('change', dtUpdateApiPreview);
+});
+
+function toggleApiKeyVisibility() {
+  const field = document.getElementById('dtApiKey');
+  field.type = field.type === 'password' ? 'text' : 'password';
+}
+
+function dtSetStatusBadge(state) {
+  const badge = document.getElementById('dtStatusBadge');
+  if (state === true || state === 'true') {
+    badge.className = 'dt-status-badge enabled';
+    badge.textContent = '● Enabled';
+  } else if (state === false || state === 'false') {
+    badge.className = 'dt-status-badge disabled';
+    badge.textContent = '● Disabled';
+  } else {
+    badge.className = 'dt-status-badge unknown';
+    badge.textContent = '● Unknown';
+  }
+}
+
+async function dtLoadConfig() {
+  const ip = document.getElementById('ufoIp').value.trim();
+  if (!ip || ip === '192.168.0.0') {
+    setStatus('⚠ Please enter the UFO IP address first.', 'err');
+    return;
+  }
+  setStatus('Loading Dynatrace integration settings…', '');
+  try {
+    const res = await fetch(`http://${ip}/dtintinfo`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    document.getElementById('dtEnabled').checked  = data.enabled === true || data.enabled === 'true';
+    document.getElementById('dtEnvId').value      = data.environmentid || '';
+    document.getElementById('dtApiKey').value     = data.apikey || '';
+    const intervalVal = parseInt(data.interval) || 60;
+    document.getElementById('dtInterval').value   = intervalVal;
+    document.getElementById('dtIntervalVal').textContent = intervalVal;
+    dtSetStatusBadge(data.enabled);
+    dtUpdateApiPreview();
+    setStatus('✓ Dynatrace integration settings loaded', 'ok');
+  } catch (e) {
+    setStatus(`✗ Could not load Dynatrace settings: ${e.message}`, 'err');
+    dtSetStatusBadge(null);
+  }
+}
+
+// ── Wi-Fi Settings ────────────────────────────────────────────────────
+function wifiInfoRow(label, value) {
+  return `<span style="color:var(--muted);">${label}</span><span>${value || '—'}</span>`;
+}
+
+async function wifiLoadInfo() {
+  const ip = document.getElementById('ufoIp').value.trim();
+  if (!ip || ip === '192.168.0.0') { setStatus('⚠ Please enter the UFO IP address first.', 'err'); return; }
+  setStatus('Loading Wi-Fi info…', '');
+  const grid = document.getElementById('wifiInfoGrid');
+  try {
+    const res  = await fetch(`http://${ip}/info`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    grid.innerHTML = [
+      wifiInfoRow('SSID',             data.ssid),
+      wifiInfoRow('IP Address',       data.ipaddress),
+      wifiInfoRow('Gateway',          data.ipgateway),
+      wifiInfoRow('DNS',              data.ipdns),
+      wifiInfoRow('Subnet Mask',      data.ipsubnetmask),
+      wifiInfoRow('MAC Address',      data.macaddress),
+      wifiInfoRow('Hostname',         data.hostname),
+      wifiInfoRow('AP IP',            data.apipaddress),
+      wifiInfoRow('AP Stations',      data.apconnectedstations),
+      wifiInfoRow('Auto-Connect',     data.wifiautoconnect === '1' ? 'Yes' : 'No'),
+      wifiInfoRow('Firmware Version', data.firmwareversion),
+      wifiInfoRow('Free Heap',        data.heap ? data.heap + ' B' : null),
+    ].join('');
+    // Pre-fill hostname field if empty
+    if (data.hostname && !document.getElementById('wifiHostname').value) {
+      document.getElementById('wifiHostname').value = data.hostname;
+      wifiUpdateHostnamePreview();
+    }
+    setStatus('✓ Wi-Fi info loaded', 'ok');
+  } catch (e) {
+    grid.innerHTML = `<span style="color:var(--red);grid-column:1/-1;">Could not load info: ${e.message}</span>`;
+    setStatus(`✗ Could not load Wi-Fi info: ${e.message}`, 'err');
+  }
+}
+
+function wifiUpdateApiPreview() {
+  const ssid = document.getElementById('wifiSsid').value.trim();
+  const pwd  = document.getElementById('wifiPwd').value;
+  document.getElementById('wifiCredsApiPreview').textContent =
+    `/api?ssid=${encodeURIComponent(ssid)}&pwd=${encodeURIComponent(pwd)}`;
+}
+
+function wifiUpdateHostnamePreview() {
+  const h = document.getElementById('wifiHostname').value.trim();
+  document.getElementById('wifiHostnameApiPreview').textContent =
+    `/api?hostname=${encodeURIComponent(h)}`;
+}
+
+function toggleWifiPwdVisibility() {
+  const f = document.getElementById('wifiPwd');
+  f.type = f.type === 'password' ? 'text' : 'password';
+}
+
+async function wifiSaveCredentials() {
+  const ssid = document.getElementById('wifiSsid').value.trim();
+  const pwd  = document.getElementById('wifiPwd').value;
+  if (!ssid) { setStatus('⚠ SSID is required.', 'err'); return; }
+  const ok = await sendApi(`ssid=${encodeURIComponent(ssid)}&pwd=${encodeURIComponent(pwd)}`);
+  if (ok) setStatus('✓ Wi-Fi credentials sent — UFO is rebooting and will join the new network.', 'ok');
+}
+
+async function wifiSaveHostname() {
+  const h = document.getElementById('wifiHostname').value.trim();
+  if (!h) { setStatus('⚠ Hostname is required.', 'err'); return; }
+  const ok = await sendApi(`hostname=${encodeURIComponent(h)}`);
+  if (ok) setStatus('✓ Hostname saved.', 'ok');
+}
+
+async function dtSaveConfig() {
+  const envId    = document.getElementById('dtEnvId').value.trim();
+  const apiKey   = document.getElementById('dtApiKey').value.trim();
+  const interval = parseInt(document.getElementById('dtInterval').value);
+  const enabled  = document.getElementById('dtEnabled').checked;
+
+  if (!envId) { setStatus('⚠ Environment ID is required.', 'err'); return; }
+  if (!apiKey) { setStatus('⚠ API Token is required.', 'err'); return; }
+  if (interval < 30) { setStatus('⚠ Polling interval must be at least 30 seconds.', 'err'); return; }
+
+  let params = `dynatrace-environmentid=${encodeURIComponent(envId)}&dynatrace-apikey=${encodeURIComponent(apiKey)}&dynatrace-interval=${interval}`;
+  if (enabled) params += '&dynatrace-on=1';
+
+  const ok = await sendApi(params);
+  if (ok) {
+    dtSetStatusBadge(enabled);
+    setStatus(`✓ Dynatrace integration settings saved (integration ${enabled ? 'enabled' : 'disabled'})`, 'ok');
+  }
+}
 </script>
 </body>
 </html>
