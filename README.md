@@ -79,6 +79,7 @@ The status bar shows:
 ### Desktop Only
 - Multi-column layout for side-by-side editing
 - Larger SVG ring previews (160px)
+- Menu tabs for Wifi and Dynatrace Integration settings 
 
 ### Mobile Only
 - Optimized touch spacing (44px minimum tap targets)
