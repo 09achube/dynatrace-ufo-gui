@@ -28,6 +28,8 @@ Full-featured desktop controller with a three-column layout optimized for 14"+ s
 ### `ufo-controller-mobile.html` (Mobile)
 Touch-friendly interface optimized for phones in portrait mode.
 
+![screenshot of mobile menu](https://github.com/09achube/dynatrace-ufo-gui/blob/main/screenshots/mobilemenu.png)
+
 **Layout:**
 - Sticky header with IP connection bar
 - Single-column card stack
