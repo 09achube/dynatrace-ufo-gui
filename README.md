@@ -12,15 +12,18 @@ Two browser-based controller GUIs for managing and visualizing the Dynatrace UFO
 ### `ufo-controller.html` (Desktop)
 Full-featured desktop controller with a three-column layout optimized for 14"+ screens.
 
+![screenshot of the main menu](https://github.com/09achube/dynatrace-ufo-gui/blob/main/screenshots/mainmenu.png)
+
 **Layout:**
-- Left panel: LED ring previews + logo control
+- Top panel: Tabs for LED Control, Integration, or Wifi menus
+- Left: LED ring previews + logo control
 - Center: Top ring LED segment builder + animations (whirl, morph)
 - Right: Bottom ring LED segment builder + animations
-- Full width: Quick presets grid
+- Bottom: Quick presets grid
 
 **Best for:**
 - Laptop or desktop browser
-- Detailed LED configuration
+- Detailed LED or settings configuration
 
 ### `ufo-controller-mobile.html` (Mobile)
 Touch-friendly interface optimized for phones in portrait mode.
